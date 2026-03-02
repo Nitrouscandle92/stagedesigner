@@ -184,10 +184,13 @@ const StageCanvas = () => {
         // 2. Identify connection types for validation
         const getHandleType = (handleId) => {
             if (!handleId) return 'unknown';
-            if (handleId.includes('xlr') || handleId.includes('mic') || handleId.includes('main')) return 'xlr';
-            if (handleId.includes('inst') || handleId.includes('jack') || handleId.includes('l') || handleId.includes('r')) return 'inst';
-            if (handleId.includes('spk')) return 'spk';
+
             if (handleId.includes('power')) return 'power';
+            if (handleId.includes('spk')) return 'spk';
+
+            if (handleId.includes('xlr') || handleId.includes('mic') || handleId.includes('main')) return 'xlr';
+            if (handleId.includes('inst') || handleId.includes('jack') || handleId.includes('-l') || handleId.includes('-r')) return 'inst';
+
             if (handleId.includes('rf')) return 'rf';
             return 'unknown';
         };
