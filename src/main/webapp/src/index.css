@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global overrides for React-Flow to match dark theme */
+.react-flow__background {
+    background-color: #09090b;
+}
+
+.react-flow__panel {
+    background-color: transparent;
+}
