@@ -2,14 +2,13 @@ package com.stageplot.api.controller;
 
 import com.stageplot.api.dto.StageDto;
 import com.stageplot.api.mapper.StageMapper;
+import com.stageplot.core.domain.Connection;
 import com.stageplot.core.domain.Stage;
-import com.stageplot.core.export.PdfExportService;
+import com.stageplot.core.domain.StageElement;
 import com.stageplot.core.logic.CableColorService;
 import com.stageplot.core.repository.StageRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,6 @@ public class StageController {
 
     private final StageRepository repository;
     private final CableColorService colorService;
-    private final PdfExportService pdfService;
     private final StageMapper mapper;
 
     @GetMapping
@@ -47,35 +45,93 @@ public class StageController {
     @PostMapping
     @Transactional
     public ResponseEntity<StageDto> saveStage(@Valid @RequestBody StageDto stageDto) {
-        // Clear existing elements/connections if updating to avoid duplicate key or mapping errors
+        Stage stageToSave;
+
         if (stageDto.getId() != null && repository.existsById(stageDto.getId())) {
-            Stage existing = repository.findById(stageDto.getId()).get();
-            existing.getElements().clear();
-            existing.getConnections().clear();
-            repository.saveAndFlush(existing);
+            // Load existing entity from DB
+            stageToSave = repository.findById(stageDto.getId()).orElseThrow();
+
+            // Overwrite basic data manually to avoid MapStruct detachment issues
+            stageToSave.setName(stageDto.getName());
+            stageToSave.setWidthMeters(stageDto.getWidthMeters());
+            stageToSave.setDepthMeters(stageDto.getDepthMeters());
+
+            // Safely sync elements
+            if (stageDto.getElements() != null) {
+                // Remove deleted elements
+                stageToSave.getElements().removeIf(existing ->
+                        stageDto.getElements().stream().noneMatch(dto -> dto.getId().equals(existing.getId()))
+                );
+
+                // Update existing or add new elements explicitly
+                for (var dto : stageDto.getElements()) {
+                    var existingOpt = stageToSave.getElements().stream()
+                            .filter(e -> e.getId().equals(dto.getId()))
+                            .findFirst();
+
+                    if (existingOpt.isPresent()) {
+                        var existing = existingOpt.get();
+                        existing.setCategory(dto.getCategory());
+                        existing.setConfiguration(dto.getConfiguration());
+                        existing.setLabel(dto.getLabel());
+                        existing.setX(dto.getX());
+                        existing.setY(dto.getY());
+                        existing.setWidth(dto.getWidth());
+                        existing.setHeight(dto.getHeight());
+                    } else {
+                        StageElement newElement = new StageElement();
+                        newElement.setId(dto.getId());
+                        newElement.setCategory(dto.getCategory());
+                        newElement.setConfiguration(dto.getConfiguration());
+                        newElement.setLabel(dto.getLabel());
+                        newElement.setX(dto.getX());
+                        newElement.setY(dto.getY());
+                        newElement.setWidth(dto.getWidth());
+                        newElement.setHeight(dto.getHeight());
+                        // Important: Link child to parent stage
+                        newElement.setStage(stageToSave);
+                        stageToSave.getElements().add(newElement);
+                    }
+                }
+            } else {
+                stageToSave.getElements().clear();
+            }
+
+            // Rebuild connections completely
+            stageToSave.getConnections().clear();
+            if (stageDto.getConnections() != null) {
+                int i = 0;
+                for (var dto : stageDto.getConnections()) {
+                    Connection conn = new Connection();
+                    conn.setSourceId(dto.getSourceId());
+                    conn.setTargetId(dto.getTargetId());
+                    conn.setType(dto.getType() != null ? dto.getType() : com.stageplot.core.domain.ConnectionType.AUDIO);
+                    conn.setHexColor(colorService.getNextColor(conn.getType(), i++));
+                    // Important: Link child to parent stage
+                    conn.setStage(stageToSave);
+                    stageToSave.getConnections().add(conn);
+                }
+            }
+
+            // Explicit flush avoids stale state merge conflicts
+            repository.flush();
+            return ResponseEntity.ok(mapper.toDto(stageToSave));
+
+        } else {
+            // Create a completely new stage
+            stageToSave = mapper.toEntity(stageDto);
+            if (stageToSave.getElements() != null) {
+                stageToSave.getElements().forEach(e -> e.setStage(stageToSave));
+            }
+            if (stageToSave.getConnections() != null) {
+                int i = 0;
+                for (var c : stageToSave.getConnections()) {
+                    c.setStage(stageToSave);
+                    c.setHexColor(colorService.getNextColor(c.getType(), i++));
+                }
+            }
+            Stage savedStage = repository.save(stageToSave);
+            return ResponseEntity.ok(mapper.toDto(savedStage));
         }
-
-        Stage stage = mapper.toEntity(stageDto);
-
-        for (int i = 0; i < stage.getConnections().size(); i++) {
-            var conn = stage.getConnections().get(i);
-            conn.setHexColor(colorService.getNextColor(conn.getType(), i));
-        }
-
-        Stage savedStage = repository.save(stage);
-        return ResponseEntity.ok(mapper.toDto(savedStage));
-    }
-
-    @GetMapping("/{id}/export")
-    public ResponseEntity<byte[]> exportPdf(@PathVariable Long id) {
-        Stage stage = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stage not found"));
-
-        byte[] pdf = pdfService.generatePdf(stage);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"stageplot_" + id + ".pdf\"")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
     }
 }

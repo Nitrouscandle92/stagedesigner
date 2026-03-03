@@ -22,7 +22,7 @@ import DIBoxNode from '../nodes/DIBoxNode';
 import AmpNode from '../nodes/AmpNode';
 import StageSetupModal from './StageSetupModal';
 import NodeConfigModal from './NodeConfigModal';
-import { saveStage, getStage, exportStagePdf } from '../../api/stageService';
+import { getStage } from '../../api/stageService';
 import { useScaling } from '../../hooks/useScaling';
 import WirelessReceiverNode from "../nodes/WirelessReceiverNode";
 import DI800Node from "../nodes/DIBoxNode";
@@ -86,17 +86,14 @@ const nodeTypes = {
     glockenspiel: GlockenspielNode,
     triangle: TriangleNode
 };
+
 const edgeTypes = {
     cable: CableEdge,
 };
 
-const StageCanvas = () => {
+// State wird nun via Props vom StageEditor empfangen!
+const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageConfig, setCurrentStageId }) => {
     const reactFlowWrapper = useRef(null);
-    const [nodes, setNodes] = useState([]);
-    const [edges, setEdges] = useState([]);
-
-    const [stageConfig, setStageConfig] = useState(null);
-    const [currentStageId, setCurrentStageId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [configNode, setConfigNode] = useState(null);
 
@@ -147,7 +144,7 @@ const StageCanvas = () => {
             }
         };
         loadInitialStage();
-    }, [toPixels, createBoundaryNode]);
+    }, [toPixels, createBoundaryNode, setCurrentStageId, setStageConfig, setNodes, setEdges]);
 
     const handleSetupComplete = (config) => {
         setStageConfig(config);
@@ -179,8 +176,8 @@ const StageCanvas = () => {
         });
     };
 
-    const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
-    const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+    const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), [setNodes]);
+    const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), [setEdges]);
 
     const onConnect = useCallback((params) => setEdges((eds) => {
         const isOccupied = eds.some(edge =>
@@ -242,7 +239,7 @@ const StageCanvas = () => {
                 stroke: cableColor
             }
         }, eds);
-    }), []);
+    }), [setEdges]);
 
     const onDragOver = useCallback((event) => {
         event.preventDefault();
@@ -283,7 +280,7 @@ const StageCanvas = () => {
         };
 
         setNodes((nds) => nds.concat(newNode));
-    }, [screenToFlowPosition, nodes]);
+    }, [screenToFlowPosition, nodes, setNodes]);
 
     const onNodeDoubleClick = useCallback((event, node) => {
         if (node.type !== 'stageBoundary') {
