@@ -12,7 +12,7 @@ export const getStage = async (id) => {
 
 export const exportStagePdf = async (id) => {
     try {
-        const response = await apiClient.get(`/api/stages/${id}/export`, {
+        const response = await apiClient.get(`/stages/${id}/export`, {
             responseType: 'blob'
         });
 

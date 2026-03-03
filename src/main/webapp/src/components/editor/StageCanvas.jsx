@@ -25,7 +25,6 @@ import NodeConfigModal from './NodeConfigModal';
 import { saveStage, getStage, exportStagePdf } from '../../api/stageService';
 import { useScaling } from '../../hooks/useScaling';
 import WirelessReceiverNode from "../nodes/WirelessReceiverNode";
-import InstrumentNode from "../nodes/InstrumentNode";
 import DI800Node from "../nodes/DIBoxNode";
 import VocalMicNode from '../nodes/VocalMicNode';
 import ChoirMicNode from '../nodes/ChoirMicNode';
@@ -39,7 +38,11 @@ import MusicStandNode from '../nodes/MusicStandNode';
 import EGuitarNode from '../nodes/EGuitarNode';
 import EBassNode from '../nodes/EBassNode';
 import AcousticGuitarNode from '../nodes/AcousticGuitarNode';
-
+import {
+    ViolinNode, CelloNode, TrumpetNode, TromboneNode, FrenchHornNode,
+    SaxophoneNode, FluteNode, CajonNode, KazooNode, SteelDrumNode,
+    GlockenspielNode, TriangleNode
+} from '../nodes/InstrumentNode';
 
 const nodeTypes = {
     acoustic: AcousticNode,
@@ -58,7 +61,6 @@ const nodeTypes = {
     amp: AmpNode,
     wireless_receiver: WirelessReceiverNode,
     di800: DI800Node,
-    instrument: InstrumentNode,
     vocal_mic: VocalMicNode,
     choir_mic: ChoirMicNode,
     pulpit_mic: PulpitMicNode,
@@ -71,8 +73,19 @@ const nodeTypes = {
     eguitar: EGuitarNode,
     ebass: EBassNode,
     acoustic_guitar: AcousticGuitarNode,
+    violin: ViolinNode,
+    cello: CelloNode,
+    trumpet: TrumpetNode,
+    trombone: TromboneNode,
+    frenchhorn: FrenchHornNode,
+    saxophone: SaxophoneNode,
+    flute: FluteNode,
+    cajon: CajonNode,
+    kazoo: KazooNode,
+    steeldrum: SteelDrumNode,
+    glockenspiel: GlockenspielNode,
+    triangle: TriangleNode
 };
-
 const edgeTypes = {
     cable: CableEdge,
 };
@@ -141,7 +154,6 @@ const StageCanvas = () => {
         setNodes([createBoundaryNode(config.widthMeters, config.depthMeters, config.name)]);
     };
 
-    // Handle dynamic stage size updates from the UI panel
     const handleStageSizeChange = (dimension, value) => {
         const numValue = parseFloat(value);
         if (isNaN(numValue) || numValue <= 0) return;
@@ -171,7 +183,6 @@ const StageCanvas = () => {
     const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
 
     const onConnect = useCallback((params) => setEdges((eds) => {
-        // 1. Check if the port is already occupied
         const isOccupied = eds.some(edge =>
             edge.source === params.source && edge.sourceHandle === params.sourceHandle
         );
@@ -181,7 +192,6 @@ const StageCanvas = () => {
             return eds;
         }
 
-        // 2. Identify connection types for validation
         const getHandleType = (handleId) => {
             if (!handleId) return 'unknown';
 
@@ -198,20 +208,18 @@ const StageCanvas = () => {
         const sourceType = getHandleType(params.sourceHandle);
         const targetType = getHandleType(params.targetHandle);
 
-        // 3. Strict Validation Rule (e.g. No XLR in Klinke)
         if (sourceType !== targetType && sourceType !== 'unknown' && targetType !== 'unknown') {
             alert(`Mismatch: You cannot plug a ${sourceType.toUpperCase()} cable into a ${targetType.toUpperCase()} port!`);
             return eds;
         }
 
-        // 4. Color Spectrums
         const colorSpectrums = {
-            xlr: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af'], // Blues
-            inst: ['#9333ea', '#a855f7', '#c084fc', '#7e22ce', '#6b21a8'], // Purples
-            spk: ['#ea580c', '#f97316', '#fb923c', '#c2410c', '#9a3412'], // Oranges
-            power: ['#ca8a04', '#eab308', '#facc15', '#a16207', '#854d0e'], // Yellows
-            rf: ['#d946ef', '#e879f9', '#c026d3'], // Magentas
-            unknown: ['#9ca3af', '#6b7280'] // Grays
+            xlr: ['#2563eb', '#3b82f6', '#60a5fa', '#1d4ed8', '#1e40af'],
+            inst: ['#9333ea', '#a855f7', '#c084fc', '#7e22ce', '#6b21a8'],
+            spk: ['#ea580c', '#f97316', '#fb923c', '#c2410c', '#9a3412'],
+            power: ['#ca8a04', '#eab308', '#facc15', '#a16207', '#854d0e'],
+            rf: ['#d946ef', '#e879f9', '#c026d3'],
+            unknown: ['#9ca3af', '#6b7280']
         };
 
         const typeCount = eds.filter(e => getHandleType(e.sourceHandle) === sourceType).length;
@@ -224,7 +232,6 @@ const StageCanvas = () => {
         const multiplier = Math.ceil(targetEdgesCount / 2) * (targetEdgesCount % 2 === 0 ? 1 : -1);
         const calculatedOffset = multiplier * baseSpacing;
 
-        // 6. Create the Edge
         return addEdge({
             ...params,
             type: 'cable',
@@ -299,66 +306,6 @@ const StageCanvas = () => {
         setConfigNode(null);
     };
 
-    const handleSave = async () => {
-        if (!stageConfig) return;
-
-        const exportableNodes = nodes.filter(n => n.id !== 'stage-boundary');
-
-        const payload = {
-            id: currentStageId,
-            name: stageConfig.name,
-            widthMeters: stageConfig.widthMeters,
-            depthMeters: stageConfig.depthMeters,
-            elements: exportableNodes.map(n => ({
-                id: n.id,
-                label: n.data.label,
-                category: n.type.toUpperCase(),
-                x: toMeters(n.position.x),
-                y: toMeters(n.position.y),
-                width: toMeters(100), // Consider calculating actual width/height based on node dimensions if needed backend-side
-                height: toMeters(50),
-                configuration: n.data.configuration || {}
-            })),
-            connections: edges.map(e => {
-                const sourceNode = nodes.find(n => n.id === e.source);
-                return {
-                    id: e.id.includes('edge_') ? e.id.replace('edge_', '') : null,
-                    sourceId: e.source,
-                    targetId: e.target,
-                    type: sourceNode?.data?.category || 'AUDIO'
-                };
-            })
-        };
-
-        try {
-            const savedStage = await saveStage(payload);
-            setCurrentStageId(savedStage.id);
-            alert('Saved! Configurations and colors synced.');
-        } catch (error) {
-            console.error('Save failed', error);
-        }
-    };
-
-    const handleExportPdf = async () => {
-        if (!currentStageId) {
-            alert("Please save the stage first before exporting.");
-            return;
-        }
-        try {
-            const pdfBlob = await exportStagePdf(currentStageId);
-            const url = window.URL.createObjectURL(new Blob([pdfBlob]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `StagePlot_${stageConfig.name.replace(/\s+/g, '_')}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode.removeChild(link);
-        } catch (error) {
-            console.error('PDF export failed', error);
-            alert('Error exporting PDF.');
-        }
-    };
-
     if (isLoading) return <div className="flex h-full items-center justify-center text-white bg-zinc-900">Loading...</div>;
 
     return (
@@ -389,11 +336,10 @@ const StageCanvas = () => {
                 <Background color="#18181b" gap={20} />
                 <Controls />
 
-                {/* Stage Dimensions Control Panel */}
                 {stageConfig && (
                     <Panel position="top-left" className="bg-zinc-900 border border-zinc-700 p-3 rounded-md shadow-lg flex gap-4">
                         <div className="flex items-center gap-2">
-                            <label className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Breite (m)</label>
+                            <label className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Width (m)</label>
                             <input
                                 type="number"
                                 min="1"
@@ -404,7 +350,7 @@ const StageCanvas = () => {
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <label className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Tiefe (m)</label>
+                            <label className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Depth (m)</label>
                             <input
                                 type="number"
                                 min="1"
@@ -416,15 +362,6 @@ const StageCanvas = () => {
                         </div>
                     </Panel>
                 )}
-
-                <Panel position="top-right" className="flex gap-2">
-                    <button onClick={handleExportPdf} className="bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 text-white px-4 py-2 rounded-md font-bold text-sm shadow-lg transition-colors">
-                        Export PDF
-                    </button>
-                    <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-bold text-sm shadow-lg transition-colors">
-                        Save Setup
-                    </button>
-                </Panel>
             </ReactFlow>
         </div>
     );

@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
 
+// Alle neuen akustischen Instrumente in einer Liste
+const acousticInstruments = [
+    'violin', 'cello', 'trumpet', 'trombone', 'frenchhorn',
+    'saxophone', 'flute', 'cajon', 'kazoo', 'steeldrum',
+    'glockenspiel', 'triangle'
+];
+
 const NodeConfigModal = ({ node, onClose, onSave }) => {
     const [config, setConfig] = useState(node.data.configuration || {});
 
@@ -8,11 +15,14 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
         onSave(node.id, config);
     };
 
+    // Prüfen, ob die Node einen Patch-Channel benötigt
     const needsChannelPatch = [
-        'eguitar', 'ebass', 'acoustic_guitar', 'instrument',
+        'eguitar', 'ebass', 'acoustic_guitar',
         'di800', 'wireless_receiver', 'vocal_mic', 'choir_mic',
-        'pulpit_mic', 'wireless_mic', 'drum'
+        'pulpit_mic', 'wireless_mic', 'drum', ...acousticInstruments
     ].includes(node.type);
+
+    const isAcousticInstrument = acousticInstruments.includes(node.type);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -43,16 +53,16 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
                         <div className="space-y-3">
                             <div className="flex gap-2">
                                 <div className="flex-1">
-                                    <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Breite (m)</label>
+                                    <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Width (m)</label>
                                     <input type="number" step="0.5" min="1" value={config.widthMeters || 2} onChange={(e) => setConfig({ ...config, widthMeters: parseFloat(e.target.value) })} className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white" />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Tiefe (m)</label>
+                                    <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Depth (m)</label>
                                     <input type="number" step="0.5" min="1" value={config.depthMeters || 2} onChange={(e) => setConfig({ ...config, depthMeters: parseFloat(e.target.value) })} className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white" />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Anzahl der Toms</label>
+                                <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Number of Toms</label>
                                 <input type="number" min="0" max="4" value={config.tomCount ?? 2} onChange={(e) => setConfig({ ...config, tomCount: parseInt(e.target.value, 10) })} className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white" />
                             </div>
                         </div>
@@ -61,20 +71,20 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
                     {node.type === 'power' && (
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs text-zinc-400 mb-2 uppercase tracking-wider">Verteiler-Typ</label>
+                                <label className="block text-xs text-zinc-400 mb-2 uppercase tracking-wider">Power Distributor Type</label>
                                 <select
                                     value={config.powerType || 'STRIP'}
                                     onChange={(e) => setConfig({ ...config, powerType: e.target.value })}
                                     className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm focus:border-blue-500 outline-none"
                                 >
-                                    <option value="STRIP">Verteilersteckdose (Schuko)</option>
-                                    <option value="DRUM">Kabeltrommel</option>
-                                    <option value="DISTRO">Starkstromverteiler (CEE 16A/32A)</option>
+                                    <option value="STRIP">Power Strip (Schuko)</option>
+                                    <option value="DRUM">Cable Drum</option>
+                                    <option value="DISTRO">Power Distributor (CEE 16A/32A)</option>
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Anzahl der Steckdosen</label>
+                                <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Number of Sockets</label>
                                 <input
                                     type="number"
                                     min="1"
@@ -88,42 +98,27 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
                     )}
 
                     {(node.type === 'eguitar' || node.type === 'ebass') && (
-                        <div className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded border border-zinc-700">
+                        <div className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded border border-zinc-700 cursor-pointer" onClick={() => setConfig({ ...config, showAmp: !config.showAmp })}>
                             <input
                                 type="checkbox"
                                 checked={config.showAmp || false}
                                 onChange={(e) => setConfig({ ...config, showAmp: e.target.checked })}
-                                className="w-4 h-4 rounded accent-blue-500"
+                                className="w-4 h-4 rounded accent-blue-500 pointer-events-none"
                             />
-                            <label className="text-sm text-zinc-200">Verstärker (Amp) anzeigen</label>
+                            <label className="text-sm text-zinc-200 pointer-events-none">Show Amplifier (Amp)</label>
                         </div>
                     )}
 
-                    {node.type === 'instrument' && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs text-zinc-400 mb-1 uppercase">Instrumenten-Typ</label>
-                                <select
-                                    value={config.instType || 'violin'}
-                                    onChange={(e) => setConfig({ ...config, instType: e.target.value })}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white"
-                                >
-                                    <option value="violin">Violine / Bratsche</option>
-                                    <option value="cello">Cello</option>
-                                    <option value="trumpet">Trompete / Posaune</option>
-                                    <option value="sax">Saxophon</option>
-                                    <option value="flute">Flöte</option>
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded border border-zinc-700">
-                                <input
-                                    type="checkbox"
-                                    checked={config.useClipMic || false}
-                                    onChange={(e) => setConfig({ ...config, useClipMic: e.target.checked })}
-                                    className="w-4 h-4 rounded accent-blue-500"
-                                />
-                                <label className="text-sm text-zinc-200">Clip-Mikrofon (XLR Out) nutzen</label>
-                            </div>
+                    {/* Clip Mic Toggle für die neuen Instrumenten-Nodes */}
+                    {isAcousticInstrument && (
+                        <div className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded border border-zinc-700 cursor-pointer" onClick={() => setConfig({ ...config, useClipMic: !config.useClipMic })}>
+                            <input
+                                type="checkbox"
+                                checked={config.useClipMic || false}
+                                onChange={(e) => setConfig({ ...config, useClipMic: e.target.checked })}
+                                className="w-4 h-4 rounded accent-blue-500 pointer-events-none"
+                            />
+                            <label className="text-sm text-zinc-200 pointer-events-none">Use Clip Microphone (XLR Out)</label>
                         </div>
                     )}
 
@@ -143,7 +138,7 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
 
                     {node.type === 'monitor' && (
                         <div>
-                            <label className="block text-xs text-zinc-400 mb-2 uppercase tracking-wider">Monitor Modell</label>
+                            <label className="block text-xs text-zinc-400 mb-2 uppercase tracking-wider">Monitor Model</label>
                             <select
                                 value={config.monitorType || 'MON_A12'}
                                 onChange={(e) => setConfig({ ...config, monitorType: e.target.value })}

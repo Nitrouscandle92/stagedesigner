@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,10 +45,18 @@ public class StageController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<StageDto> saveStage(@Valid @RequestBody StageDto stageDto) {
+        // Clear existing elements/connections if updating to avoid duplicate key or mapping errors
+        if (stageDto.getId() != null && repository.existsById(stageDto.getId())) {
+            Stage existing = repository.findById(stageDto.getId()).get();
+            existing.getElements().clear();
+            existing.getConnections().clear();
+            repository.saveAndFlush(existing);
+        }
+
         Stage stage = mapper.toEntity(stageDto);
 
-        // Apply visual separation logic to connections
         for (int i = 0; i < stage.getConnections().size(); i++) {
             var conn = stage.getConnections().get(i);
             conn.setHexColor(colorService.getNextColor(conn.getType(), i));
@@ -65,7 +74,7 @@ public class StageController {
         byte[] pdf = pdfService.generatePdf(stage);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"stageplot_" + stage.getId() + ".pdf\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"stageplot_" + id + ".pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }

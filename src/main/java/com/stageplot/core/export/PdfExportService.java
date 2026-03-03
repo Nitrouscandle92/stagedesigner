@@ -26,67 +26,94 @@ public class PdfExportService {
             PdfWriter.getInstance(document, out);
             document.open();
 
+            // Header
             addHeader(document, stage);
+
+            // Section 1: Equipment Inventory
+            document.add(new Paragraph("1. Equipment Inventory", new Font(Font.HELVETICA, 14, Font.BOLD)));
+            document.add(new Paragraph(" "));
+            addEquipmentTable(document, stage);
+
+            document.add(new Paragraph(" "));
+
+            // Section 2: Patch List (Connections)
+            document.add(new Paragraph("2. Patch List (Cabling)", new Font(Font.HELVETICA, 14, Font.BOLD)));
             document.add(new Paragraph(" "));
             addPatchListTable(document, stage);
 
             document.close();
             return out.toByteArray();
         } catch (Exception e) {
-            throw new RuntimeException("PDF generation failed", e);
+            throw new RuntimeException("PDF generation failed: " + e.getMessage());
         }
     }
 
     private void addHeader(Document document, Stage stage) throws DocumentException {
         Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
-        document.add(new Paragraph("Stage Plot: " + stage.getName(), titleFont));
+        document.add(new Paragraph("Stage Plot Report", titleFont));
+        document.add(new Paragraph("Project: " + (stage.getName() != null ? stage.getName() : "Unnamed")));
         document.add(new Paragraph("Dimensions: " + stage.getWidthMeters() + "m x " + stage.getDepthMeters() + "m"));
+        document.add(new Paragraph("--------------------------------------------------------------------------------------------------------------------------"));
         document.add(new Paragraph(" "));
     }
 
-    private void addPatchListTable(Document document, Stage stage) throws DocumentException {
-        PdfPTable table = new PdfPTable(4);
+    private void addEquipmentTable(Document document, Stage stage) throws DocumentException {
+        if (stage.getElements() == null || stage.getElements().isEmpty()) {
+            document.add(new Paragraph("No equipment placed on stage."));
+            return;
+        }
+
+        PdfPTable table = new PdfPTable(3);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{1f, 3f, 2f, 3f});
+        table.setWidths(new float[]{3f, 3f, 4f});
 
-        addTableHeader(table);
-        addTableRows(table, stage);
+        addHeaderCell(table, "Element");
+        addHeaderCell(table, "Category");
+        addHeaderCell(table, "Details");
 
+        for (StageElement el : stage.getElements()) {
+            table.addCell(el.getLabel() != null ? el.getLabel() : "Unnamed");
+            table.addCell(el.getCategory() != null ? el.getCategory() : "N/A");
+
+            String patch = (el.getConfiguration() != null && el.getConfiguration().containsKey("patchChannel"))
+                    ? "CH: " + el.getConfiguration().get("patchChannel")
+                    : "-";
+            table.addCell(patch);
+        }
         document.add(table);
     }
 
-    private void addTableHeader(PdfPTable table) {
-        Font headerFont = new Font(Font.HELVETICA, 12, Font.BOLD);
+    private void addPatchListTable(Document document, Stage stage) throws DocumentException {
+        if (stage.getConnections() == null || stage.getConnections().isEmpty()) {
+            document.add(new Paragraph("No connections defined."));
+            return;
+        }
 
-        PdfPCell cell1 = new PdfPCell(new Phrase("CH / ID", headerFont));
-        PdfPCell cell2 = new PdfPCell(new Phrase("Source", headerFont));
-        PdfPCell cell3 = new PdfPCell(new Phrase("Type", headerFont));
-        PdfPCell cell4 = new PdfPCell(new Phrase("Target", headerFont));
+        PdfPTable table = new PdfPTable(4);
+        table.setWidthPercentage(100);
+        table.setWidths(new float[]{1f, 4f, 2f, 4f});
 
-        table.addCell(cell1);
-        table.addCell(cell2);
-        table.addCell(cell3);
-        table.addCell(cell4);
+        addHeaderCell(table, "#");
+        addHeaderCell(table, "From (Source)");
+        addHeaderCell(table, "Signal");
+        addHeaderCell(table, "To (Target)");
+
+        Map<String, String> labels = stage.getElements().stream()
+                .collect(Collectors.toMap(StageElement::getId, e -> e.getLabel() != null ? e.getLabel() : e.getId(), (a, b) -> a));
+
+        int i = 1;
+        for (Connection conn : stage.getConnections()) {
+            table.addCell(String.valueOf(i++));
+            table.addCell(labels.getOrDefault(conn.getSourceId(), "Unknown"));
+            table.addCell(conn.getType() != null ? conn.getType().name() : "AUDIO");
+            table.addCell(labels.getOrDefault(conn.getTargetId(), "Unknown"));
+        }
+        document.add(table);
     }
 
-    private void addTableRows(PdfPTable table, Stage stage) {
-        Map<String, String> elementLabels = stage.getElements().stream()
-                .collect(Collectors.toMap(
-                        StageElement::getId,
-                        StageElement::getLabel,
-                        (existing, replacement) -> existing
-                ));
-
-        int index = 1;
-        for (Connection conn : stage.getConnections()) {
-            String sourceName = elementLabels.getOrDefault(conn.getSourceId(), conn.getSourceId());
-            String targetName = elementLabels.getOrDefault(conn.getTargetId(), conn.getTargetId());
-            String type = conn.getType() != null ? conn.getType().name() : "UNKNOWN";
-
-            table.addCell(String.valueOf(index++));
-            table.addCell(sourceName);
-            table.addCell(type);
-            table.addCell(targetName);
-        }
+    private void addHeaderCell(PdfPTable table, String text) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.HELVETICA, 12, Font.BOLD)));
+        cell.setPadding(5);
+        table.addCell(cell);
     }
 }

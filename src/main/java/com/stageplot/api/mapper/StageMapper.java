@@ -4,11 +4,14 @@ import com.stageplot.api.dto.ConnectionDto;
 import com.stageplot.api.dto.StageDto;
 import com.stageplot.api.dto.StageElementDto;
 import com.stageplot.core.domain.Connection;
+import com.stageplot.core.domain.ConnectionType;
 import com.stageplot.core.domain.Stage;
 import com.stageplot.core.domain.StageElement;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -23,42 +26,53 @@ public class StageMapper {
         stage.setWidthMeters(dto.getWidthMeters());
         stage.setDepthMeters(dto.getDepthMeters());
 
-        if (dto.getElements() != null) {
-            stage.setElements(dto.getElements().stream().map(e -> {
-                StageElement element = new StageElement();
-                element.setId(e.getId());
-                element.setLabel(e.getLabel());
-                element.setCategory(e.getCategory());
-                element.setX(e.getX());
-                element.setY(e.getY());
-                element.setWidth(e.getWidth());
-                element.setHeight(e.getHeight());
-
-                if (e.getConfiguration() != null) {
-                    element.setConfiguration(new HashMap<>(e.getConfiguration()));
-                }
-
-                element.setStage(stage);
-                return element;
-            }).collect(Collectors.toList()));
-        }
-
-        if (dto.getConnections() != null) {
-            stage.setConnections(dto.getConnections().stream().map(c -> {
-                Connection conn = new Connection();
-                conn.setId(c.getId());
-                conn.setSourceId(c.getSourceId());
-                conn.setTargetId(c.getTargetId());
-                conn.setType(c.getType());
-                conn.setHexColor(c.getHexColor());
-                conn.setSourceChannel(c.getSourceChannel());
-                conn.setTargetChannel(c.getTargetChannel());
-                conn.setStage(stage); // Maintain bidirectional relationship
-                return conn;
-            }).collect(Collectors.toList()));
-        }
+        stage.setElements(mapElementsToEntity(dto.getElements(), stage));
+        stage.setConnections(mapConnectionsToEntity(dto.getConnections(), stage));
 
         return stage;
+    }
+
+    private List<StageElement> mapElementsToEntity(List<StageElementDto> dtos, Stage stage) {
+        if (dtos == null) return new ArrayList<>();
+        return dtos.stream().map(e -> {
+            StageElement element = new StageElement();
+            element.setId(e.getId());
+            element.setLabel(e.getLabel());
+            element.setCategory(e.getCategory());
+            element.setX(e.getX());
+            element.setY(e.getY());
+            element.setStage(stage);
+            element.setWidth(e.getWidth());
+            element.setHeight(e.getHeight());
+            if (e.getConfiguration() != null) {
+                element.setConfiguration(new HashMap<>(e.getConfiguration()));
+            }
+            element.setStage(stage);
+            return element;
+        }).collect(Collectors.toList());
+    }
+
+    private List<Connection> mapConnectionsToEntity(List<ConnectionDto> dtos, Stage stage) {
+        if (dtos == null) return new ArrayList<>();
+        return dtos.stream().map(c -> {
+            Connection conn = new Connection();
+            conn.setId(c.getId());
+            conn.setSourceId(c.getSourceId());
+            conn.setTargetId(c.getTargetId());
+            conn.setType(safeMapType(c.getType()));
+            conn.setHexColor(c.getHexColor());
+            conn.setStage(stage);
+            return conn;
+        }).collect(Collectors.toList());
+    }
+
+    private ConnectionType safeMapType(Object type) {
+        if (type == null) return ConnectionType.AUDIO;
+        try {
+            return ConnectionType.valueOf(type.toString().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ConnectionType.AUDIO;
+        }
     }
 
     public StageDto toDto(Stage entity) {
@@ -71,38 +85,38 @@ public class StageMapper {
         dto.setDepthMeters(entity.getDepthMeters());
 
         if (entity.getElements() != null) {
-            dto.setElements(entity.getElements().stream().map(e -> {
-                StageElementDto elementDto = new StageElementDto();
-                elementDto.setId(e.getId());
-                elementDto.setLabel(e.getLabel());
-                elementDto.setCategory(e.getCategory());
-                elementDto.setX(e.getX());
-                elementDto.setY(e.getY());
-                elementDto.setWidth(e.getWidth());
-                elementDto.setHeight(e.getHeight());
-
-                if (e.getConfiguration() != null) {
-                    elementDto.setConfiguration(new HashMap<>(e.getConfiguration()));
-                }
-
-                return elementDto;
-            }).collect(Collectors.toList()));
+            dto.setElements(entity.getElements().stream().map(this::toElementDto).collect(Collectors.toList()));
         }
 
         if (entity.getConnections() != null) {
-            dto.setConnections(entity.getConnections().stream().map(c -> {
-                ConnectionDto connDto = new ConnectionDto();
-                connDto.setId(c.getId());
-                connDto.setSourceId(c.getSourceId());
-                connDto.setTargetId(c.getTargetId());
-                connDto.setType(c.getType());
-                connDto.setHexColor(c.getHexColor());
-                connDto.setSourceChannel(c.getSourceChannel());
-                connDto.setTargetChannel(c.getTargetChannel());
-                return connDto;
-            }).collect(Collectors.toList()));
+            dto.setConnections(entity.getConnections().stream().map(this::toConnectionDto).collect(Collectors.toList()));
         }
 
+        return dto;
+    }
+
+    private StageElementDto toElementDto(StageElement e) {
+        StageElementDto dto = new StageElementDto();
+        dto.setId(e.getId());
+        dto.setLabel(e.getLabel());
+        dto.setCategory(e.getCategory());
+        dto.setX(e.getX());
+        dto.setY(e.getY());
+        dto.setWidth(e.getWidth());
+        dto.setHeight(e.getHeight());
+        if (e.getConfiguration() != null) {
+            dto.setConfiguration(new HashMap<>(e.getConfiguration()));
+        }
+        return dto;
+    }
+
+    private ConnectionDto toConnectionDto(Connection c) {
+        ConnectionDto dto = new ConnectionDto();
+        dto.setId(c.getId());
+        dto.setSourceId(c.getSourceId());
+        dto.setTargetId(c.getTargetId());
+        dto.setType(c.getType());
+        dto.setHexColor(c.getHexColor());
         return dto;
     }
 }

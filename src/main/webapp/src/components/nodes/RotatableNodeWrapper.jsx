@@ -3,7 +3,7 @@ import { useReactFlow, useUpdateNodeInternals } from '@xyflow/react';
 import { RotateCw } from 'lucide-react';
 
 const RotatableNodeWrapper = ({ id, selected, rotation, children }) => {
-    const { updateNodeData } = useReactFlow();
+    const { updateNodeData, getNode } = useReactFlow();
     const updateNodeInternals = useUpdateNodeInternals();
 
     const nodeRef = useRef(null);
@@ -34,8 +34,11 @@ const RotatableNodeWrapper = ({ id, selected, rotation, children }) => {
 
             const snappedAngle = Math.round(angle / 15) * 15;
 
+            const currentNode = getNode(id);
+            const currentConfig = currentNode?.data?.configuration || {};
+
             updateNodeData(id, {
-                configuration: { rotation: snappedAngle }
+                configuration: { ...currentConfig, rotation: snappedAngle }
             });
 
             updateNodeInternals(id);
@@ -52,7 +55,7 @@ const RotatableNodeWrapper = ({ id, selected, rotation, children }) => {
             window.removeEventListener('pointermove', onPointerMove);
             window.removeEventListener('pointerup', onPointerUp);
         };
-    }, [isRotating, id, updateNodeData, updateNodeInternals]);
+    }, [isRotating, id, updateNodeData, updateNodeInternals, getNode]);
 
     useEffect(() => {
         updateNodeInternals(id);

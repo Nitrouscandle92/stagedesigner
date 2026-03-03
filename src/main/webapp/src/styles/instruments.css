@@ -1,0 +1,21 @@
+.inst-wood {
+    fill: url(#wood-grad);
+    stroke: #3d1d04;
+    stroke-width: 1.5;
+}
+
+.inst-brass {
+    fill: url(#brass-grad);
+    stroke: #855f08;
+    stroke-width: 1;
+}
+
+.inst-silver {
+    fill: url(#silver-grad);
+    stroke: #64748b;
+    stroke-width: 1;
+}
+
+.inst-dark {
+    fill: #1a1a1a;
+}
