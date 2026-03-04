@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
     ReactFlow, addEdge, Background, Controls, useReactFlow,
     applyNodeChanges, applyEdgeChanges, Panel
@@ -22,7 +22,6 @@ import DIBoxNode from '../nodes/DIBoxNode';
 import AmpNode from '../nodes/AmpNode';
 import StageSetupModal from './StageSetupModal';
 import NodeConfigModal from './NodeConfigModal';
-import { getStage } from '../../api/stageService';
 import { useScaling } from '../../hooks/useScaling';
 import WirelessReceiverNode from "../nodes/WirelessReceiverNode";
 import DI800Node from "../nodes/DIBoxNode";
@@ -43,6 +42,12 @@ import {
     SaxophoneNode, FluteNode, CajonNode, KazooNode, SteelDrumNode,
     GlockenspielNode, TriangleNode
 } from '../nodes/InstrumentNode';
+import ArriControllerNode from "../nodes/ArriControllerNode";
+import DmxControllerNode from "../nodes/DmxControllerNode";
+import RgbSpotNode from "../nodes/RgbSpotNode";
+import ArriSpotNode from "../nodes/ArriSpotNode";
+import MovingHeadNode from "../nodes/MovingHeadNode";
+import LightStandNode from "../nodes/LightStandNode";
 
 const nodeTypes = {
     acoustic: AcousticNode,
@@ -84,21 +89,26 @@ const nodeTypes = {
     kazoo: KazooNode,
     steeldrum: SteelDrumNode,
     glockenspiel: GlockenspielNode,
-    triangle: TriangleNode
+    triangle: TriangleNode,
+    light_stand: LightStandNode,
+    moving_head: MovingHeadNode,
+    arri_spot: ArriSpotNode,
+    rgb_spot: RgbSpotNode,
+    dmx_controller: DmxControllerNode,
+    arri_controller: ArriControllerNode,
 };
 
 const edgeTypes = {
     cable: CableEdge,
 };
 
-// State wird nun via Props vom StageEditor empfangen!
 const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageConfig, setCurrentStageId }) => {
     const reactFlowWrapper = useRef(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [configNode, setConfigNode] = useState(null);
 
-    const { screenToFlowPosition } = useReactFlow();
-    const { toMeters, toPixels } = useScaling();
+    const { screenToFlowPosition, getNode } = useReactFlow();
+    const { toPixels } = useScaling();
 
     const createBoundaryNode = useCallback((width, depth, label) => ({
         id: 'stage-boundary',
@@ -110,41 +120,15 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
         zIndex: -1
     }), [toPixels]);
 
-    useEffect(() => {
-        const loadInitialStage = async () => {
-            try {
-                const stageData = await getStage(1);
-                if (stageData) {
-                    setCurrentStageId(stageData.id);
-                    setStageConfig({ name: stageData.name, widthMeters: stageData.widthMeters, depthMeters: stageData.depthMeters });
-
-                    const loadedNodes = stageData.elements.map(el => ({
-                        id: el.id,
-                        type: el.category.toLowerCase(),
-                        position: { x: toPixels(el.x), y: toPixels(el.y) },
-                        data: { label: el.label, category: el.category, configuration: el.configuration }
-                    }));
-
-                    const boundary = createBoundaryNode(stageData.widthMeters, stageData.depthMeters, stageData.name);
-                    setNodes([boundary, ...loadedNodes]);
-
-                    const loadedEdges = stageData.connections.map(conn => ({
-                        id: `edge_${conn.id}`,
-                        source: conn.sourceId,
-                        target: conn.targetId,
-                        animated: true,
-                        style: { strokeWidth: 2, stroke: conn.hexColor || '#3b82f6' }
-                    }));
-                    setEdges(loadedEdges);
-                }
-            } catch (error) {
-                console.log('Starting fresh layout.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadInitialStage();
-    }, [toPixels, createBoundaryNode, setCurrentStageId, setStageConfig, setNodes, setEdges]);
+    const getTargetStand = useCallback((draggedNode) => {
+        const SNAPPING_DISTANCE = 100;
+        return nodes.find(n => {
+            if (n.type !== 'light_stand' || n.id === draggedNode.id) return false;
+            const dx = n.position.x + 70 - draggedNode.position.x;
+            const dy = n.position.y + 20 - draggedNode.position.y;
+            return Math.hypot(dx, dy) < SNAPPING_DISTANCE;
+        });
+    }, [nodes]);
 
     const handleSetupComplete = (config) => {
         setStageConfig(config);
@@ -191,13 +175,10 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
 
         const getHandleType = (handleId) => {
             if (!handleId) return 'unknown';
-
             if (handleId.includes('power')) return 'power';
             if (handleId.includes('spk')) return 'spk';
-
             if (handleId.includes('xlr') || handleId.includes('mic') || handleId.includes('main')) return 'xlr';
             if (handleId.includes('inst') || handleId.includes('jack') || handleId.includes('-l') || handleId.includes('-r')) return 'inst';
-
             if (handleId.includes('rf')) return 'rf';
             return 'unknown';
         };
@@ -224,7 +205,6 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
         const cableColor = spectrum[typeCount % spectrum.length];
 
         const targetEdgesCount = eds.filter(e => e.target === params.target).length;
-
         const baseSpacing = 15;
         const multiplier = Math.ceil(targetEdgesCount / 2) * (targetEdgesCount % 2 === 0 ? 1 : -1);
         const calculatedOffset = multiplier * baseSpacing;
@@ -235,9 +215,7 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
             zIndex: 50,
             animated: sourceType === 'rf',
             data: { offset: calculatedOffset },
-            style: {
-                stroke: cableColor
-            }
+            style: { stroke: cableColor }
         }, eds);
     }), [setEdges]);
 
@@ -245,6 +223,48 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
     }, []);
+
+    const onNodeDragStop = useCallback((event, draggedNode) => {
+        if (!['moving_head', 'arri_spot', 'rgb_spot'].includes(draggedNode.type)) return;
+
+        const stand = getTargetStand(draggedNode);
+
+        if (stand) {
+            const isLeft = draggedNode.position.x < (stand.position.x + 70);
+            const relativeX = isLeft ? -10 : 70;
+            const relativeY = -35;
+
+            setNodes((nds) => {
+                const otherNodes = nds.filter(n => n.id !== draggedNode.id);
+                const updatedNode = {
+                    ...draggedNode,
+                    parentNode: stand.id,
+                    position: { x: relativeX, y: relativeY },
+                    extent: 'parent',
+                    zIndex: 1000
+                };
+                return [...otherNodes, updatedNode];
+            });
+        } else if (draggedNode.parentNode) {
+            const parent = getNode(draggedNode.parentNode);
+            if (parent) {
+                setNodes((nds) => nds.map(n => {
+                    if (n.id === draggedNode.id) {
+                        return {
+                            ...n,
+                            parentNode: undefined,
+                            extent: undefined,
+                            position: {
+                                x: n.position.x + parent.position.x,
+                                y: n.position.y + parent.position.y
+                            }
+                        };
+                    }
+                    return n;
+                }));
+            }
+        }
+    }, [getTargetStand, setNodes, getNode]);
 
     const onDrop = useCallback((event) => {
         event.preventDefault();
@@ -255,32 +275,28 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
         if (!type) return;
 
         let position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const stand = getTargetStand({ position, type });
 
-        let parentNodeId = null;
-        const targetRack = nodes.find(n =>
-            n.type === 'rack' &&
-            position.x >= n.position.x && position.x <= n.position.x + 192 &&
-            position.y >= n.position.y && position.y <= n.position.y + 256
-        );
-
-        if (targetRack && type === 'mic') {
-            parentNodeId = targetRack.id;
-            position = {
-                x: position.x - targetRack.position.x,
-                y: position.y - targetRack.position.y
-            };
-        }
-
-        const newNode = {
+        let nodeData = {
             id: `node_${Date.now()}`,
             type,
             position,
             data: { label, category, configuration: {} },
-            ...(parentNodeId && { parentNode: parentNodeId, extent: 'parent' })
         };
 
-        setNodes((nds) => nds.concat(newNode));
-    }, [screenToFlowPosition, nodes, setNodes]);
+        if (stand && ['moving_head', 'arri_spot', 'rgb_spot'].includes(type)) {
+            const isLeft = position.x < (stand.position.x + 70);
+            nodeData = {
+                ...nodeData,
+                parentNode: stand.id,
+                position: { x: isLeft ? -10 : 70, y: -35 },
+                extent: 'parent',
+                zIndex: 1000
+            };
+        }
+
+        setNodes((nds) => nds.concat(nodeData));
+    }, [screenToFlowPosition, nodes, setNodes, getTargetStand]);
 
     const onNodeDoubleClick = useCallback((event, node) => {
         if (node.type !== 'stageBoundary') {
@@ -325,6 +341,7 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
                 onConnect={onConnect}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
+                onNodeDragStop={onNodeDragStop}
                 onNodeDoubleClick={onNodeDoubleClick}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}

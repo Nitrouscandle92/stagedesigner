@@ -4,12 +4,13 @@ import { toJpeg } from 'html-to-image';
 import Sidebar from '../sidebar/Sidebar';
 import StageCanvas from './StageCanvas';
 import { saveStage } from '../../api/stageService';
+import { exportPatchlistPdf } from '../../api/pdfExportService';
 
 const StageEditor = () => {
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
     const [stageConfig, setStageConfig] = useState(null);
-    const [currentStageId, setCurrentStageId] = useState(1);
+    const [currentStageId, setCurrentStageId] = useState(null);
 
     const handleSave = async () => {
         if (!stageConfig) {
@@ -21,6 +22,7 @@ const StageEditor = () => {
 
         const payload = {
             id: currentStageId,
+            version: stageConfig?.version,
             name: stageConfig.name,
             widthMeters: parseFloat(stageConfig.widthMeters),
             depthMeters: parseFloat(stageConfig.depthMeters),
@@ -62,6 +64,7 @@ const StageEditor = () => {
         try {
             const savedStage = await saveStage(payload);
             setCurrentStageId(savedStage.id);
+            setStageConfig(savedStage);
             alert(`Successfully saved! ${exportableNodes.length} elements on the stage.`);
             return true;
         } catch (error) {
@@ -69,6 +72,14 @@ const StageEditor = () => {
             alert('Saving failed. Check the console for details.');
             return false;
         }
+    };
+
+    const handleExportPdf = () => {
+        if (!stageConfig) {
+            alert("No stage configuration found.");
+            return;
+        }
+        exportPatchlistPdf(stageConfig.name, nodes, edges);
     };
 
     const handleExportJpeg = () => {
@@ -96,6 +107,14 @@ const StageEditor = () => {
                     </button>
 
                     <div className="w-px h-6 bg-zinc-700 mx-1" />
+
+                    {/* New PDF Export Button */}
+                    <button
+                        onClick={handleExportPdf}
+                        className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 px-4 py-1.5 rounded-sm text-sm transition-colors flex items-center gap-2"
+                    >
+                        Export PDF (Patchlist)
+                    </button>
 
                     <button
                         onClick={handleExportJpeg}

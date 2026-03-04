@@ -12,6 +12,8 @@ import java.util.List;
 public class StageDto {
     private Long id;
 
+    private Long version;
+
     @NotBlank
     private String name;
 

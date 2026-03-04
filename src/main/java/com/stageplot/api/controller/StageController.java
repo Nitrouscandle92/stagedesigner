@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,22 +47,17 @@ public class StageController {
         Stage stageToSave;
 
         if (stageDto.getId() != null && repository.existsById(stageDto.getId())) {
-            // Load existing entity from DB
             stageToSave = repository.findById(stageDto.getId()).orElseThrow();
 
-            // Overwrite basic data manually to avoid MapStruct detachment issues
             stageToSave.setName(stageDto.getName());
             stageToSave.setWidthMeters(stageDto.getWidthMeters());
             stageToSave.setDepthMeters(stageDto.getDepthMeters());
 
-            // Safely sync elements
             if (stageDto.getElements() != null) {
-                // Remove deleted elements
                 stageToSave.getElements().removeIf(existing ->
                         stageDto.getElements().stream().noneMatch(dto -> dto.getId().equals(existing.getId()))
                 );
 
-                // Update existing or add new elements explicitly
                 for (var dto : stageDto.getElements()) {
                     var existingOpt = stageToSave.getElements().stream()
                             .filter(e -> e.getId().equals(dto.getId()))
@@ -88,7 +82,6 @@ public class StageController {
                         newElement.setY(dto.getY());
                         newElement.setWidth(dto.getWidth());
                         newElement.setHeight(dto.getHeight());
-                        // Important: Link child to parent stage
                         newElement.setStage(stageToSave);
                         stageToSave.getElements().add(newElement);
                     }
@@ -97,7 +90,6 @@ public class StageController {
                 stageToSave.getElements().clear();
             }
 
-            // Rebuild connections completely
             stageToSave.getConnections().clear();
             if (stageDto.getConnections() != null) {
                 int i = 0;
@@ -107,18 +99,15 @@ public class StageController {
                     conn.setTargetId(dto.getTargetId());
                     conn.setType(dto.getType() != null ? dto.getType() : com.stageplot.core.domain.ConnectionType.AUDIO);
                     conn.setHexColor(colorService.getNextColor(conn.getType(), i++));
-                    // Important: Link child to parent stage
                     conn.setStage(stageToSave);
                     stageToSave.getConnections().add(conn);
                 }
             }
 
-            // Explicit flush avoids stale state merge conflicts
-            repository.flush();
-            return ResponseEntity.ok(mapper.toDto(stageToSave));
+            Stage saved = repository.save(stageToSave);
+            return ResponseEntity.ok(mapper.toDto(saved));
 
         } else {
-            // Create a completely new stage
             stageToSave = mapper.toEntity(stageDto);
             if (stageToSave.getElements() != null) {
                 stageToSave.getElements().forEach(e -> e.setStage(stageToSave));

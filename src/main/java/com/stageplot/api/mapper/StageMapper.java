@@ -8,7 +8,6 @@ import com.stageplot.core.domain.ConnectionType;
 import com.stageplot.core.domain.Stage;
 import com.stageplot.core.domain.StageElement;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +21,7 @@ public class StageMapper {
 
         Stage stage = new Stage();
         stage.setId(dto.getId());
+        stage.setVersion(dto.getVersion());
         stage.setName(dto.getName());
         stage.setWidthMeters(dto.getWidthMeters());
         stage.setDepthMeters(dto.getDepthMeters());
@@ -47,7 +47,6 @@ public class StageMapper {
             if (e.getConfiguration() != null) {
                 element.setConfiguration(new HashMap<>(e.getConfiguration()));
             }
-            element.setStage(stage);
             return element;
         }).collect(Collectors.toList());
     }
@@ -80,6 +79,7 @@ public class StageMapper {
 
         StageDto dto = new StageDto();
         dto.setId(entity.getId());
+        dto.setVersion(entity.getVersion());
         dto.setName(entity.getName());
         dto.setWidthMeters(entity.getWidthMeters());
         dto.setDepthMeters(entity.getDepthMeters());
