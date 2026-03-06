@@ -346,6 +346,8 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 fitView
+                connectOnClick={true}
+                connectionRadius={45}
             >
                 <Background color="#18181b" gap={20} />
                 <Controls />

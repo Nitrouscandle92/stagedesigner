@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-// Alle neuen akustischen Instrumente in einer Liste
 const acousticInstruments = [
     'violin', 'cello', 'trumpet', 'trombone', 'frenchhorn',
     'saxophone', 'flute', 'cajon', 'kazoo', 'steeldrum',
@@ -12,10 +11,17 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
 
     const handleSave = (e) => {
         e.preventDefault();
-        onSave(node.id, config);
+
+        // Ensure empty string inputs fallback to standard dimensions before saving
+        const finalConfig = { ...config };
+        if (node.type === 'drum') {
+            finalConfig.widthMeters = finalConfig.widthMeters === '' ? 2 : parseFloat(finalConfig.widthMeters);
+            finalConfig.depthMeters = finalConfig.depthMeters === '' ? 2 : parseFloat(finalConfig.depthMeters);
+        }
+
+        onSave(node.id, finalConfig);
     };
 
-    // Prüfen, ob die Node einen Patch-Channel benötigt
     const needsChannelPatch = [
         'eguitar', 'ebass', 'acoustic_guitar',
         'di800', 'wireless_receiver', 'vocal_mic', 'choir_mic',
@@ -23,6 +29,7 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
     ].includes(node.type);
 
     const isAcousticInstrument = acousticInstruments.includes(node.type);
+    const isMicNode = ['vocal_mic', 'choir_mic', 'pulpit_mic', 'wireless_mic'].includes(node.type);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -49,16 +56,43 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
                         </div>
                     )}
 
+                    {isMicNode && (
+                        <div className="bg-zinc-800/50 p-3 rounded border border-blue-900/50">
+                            <label className="block text-xs text-blue-400 mb-2 uppercase tracking-wider font-bold">Mic Number / Identifier</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. 1, 2, Lead..."
+                                value={config.micNumber || ''}
+                                onChange={(e) => setConfig({ ...config, micNumber: e.target.value })}
+                                className="w-full bg-zinc-900 border border-zinc-700 rounded p-2 text-sm focus:border-blue-500 outline-none"
+                            />
+                        </div>
+                    )}
+
                     {node.type === 'drum' && (
                         <div className="space-y-3">
                             <div className="flex gap-2">
                                 <div className="flex-1">
                                     <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Width (m)</label>
-                                    <input type="number" step="0.5" min="1" value={config.widthMeters || 2} onChange={(e) => setConfig({ ...config, widthMeters: parseFloat(e.target.value) })} className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white" />
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        min="1"
+                                        value={config.widthMeters !== undefined ? config.widthMeters : '2'}
+                                        onChange={(e) => setConfig({ ...config, widthMeters: e.target.value === '' ? '' : e.target.value })}
+                                        className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white"
+                                    />
                                 </div>
                                 <div className="flex-1">
                                     <label className="block text-xs text-zinc-400 mb-1 uppercase tracking-wider">Depth (m)</label>
-                                    <input type="number" step="0.5" min="1" value={config.depthMeters || 2} onChange={(e) => setConfig({ ...config, depthMeters: parseFloat(e.target.value) })} className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white" />
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        min="1"
+                                        value={config.depthMeters !== undefined ? config.depthMeters : '2'}
+                                        onChange={(e) => setConfig({ ...config, depthMeters: e.target.value === '' ? '' : e.target.value })}
+                                        className="w-full bg-zinc-800 border border-zinc-700 rounded p-2 text-sm text-white"
+                                    />
                                 </div>
                             </div>
                             <div>
@@ -109,7 +143,6 @@ const NodeConfigModal = ({ node, onClose, onSave }) => {
                         </div>
                     )}
 
-                    {/* Clip Mic Toggle für die neuen Instrumenten-Nodes */}
                     {isAcousticInstrument && (
                         <div className="flex items-center gap-3 bg-zinc-800/50 p-3 rounded border border-zinc-700 cursor-pointer" onClick={() => setConfig({ ...config, useClipMic: !config.useClipMic })}>
                             <input

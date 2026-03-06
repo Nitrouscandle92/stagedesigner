@@ -4,10 +4,19 @@ import RotatableNodeWrapper from './RotatableNodeWrapper';
 
 const PulpitMicNode = ({ id, data, selected }) => {
     const rotation = data.configuration?.rotation || 0;
+    const micNumber = data.configuration?.micNumber;
 
     return (
         <RotatableNodeWrapper id={id} selected={selected} rotation={rotation}>
             <div className="flex flex-col items-center justify-center p-2 relative cursor-grab w-[60px] h-[60px]">
+
+                {/* Visual mic number indicator */}
+                {micNumber && (
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
+                        {micNumber}
+                    </div>
+                )}
+
                 {/* Table Base & Gooseneck */}
                 <div className="relative w-10 h-10 flex flex-col items-center justify-center">
                     <div className="absolute w-8 h-8 rounded-md border-2 border-zinc-700 bg-zinc-900 shadow-xl" />

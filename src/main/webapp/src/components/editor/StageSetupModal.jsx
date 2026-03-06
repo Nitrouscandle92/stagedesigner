@@ -2,11 +2,16 @@ import React, { useState } from 'react';
 
 const StageSetupModal = ({ onComplete }) => {
     const [name, setName] = useState('Main Stage');
-    const [width, setWidth] = useState(12.0);
-    const [depth, setDepth] = useState(8.0);
+    const [width, setWidth] = useState(8.0);
+    const [depth, setDepth] = useState(4.0);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        // Fallback to default values if input is empty
+        const finalWidth = width === '' ? 8.0 : parseFloat(width);
+        const finalDepth = depth === '' ? 4.0 : parseFloat(depth);
+
         onComplete({ name, widthMeters: parseFloat(width), depthMeters: parseFloat(depth) });
     };
 

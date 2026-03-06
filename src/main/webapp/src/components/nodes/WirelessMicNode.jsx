@@ -4,10 +4,19 @@ import RotatableNodeWrapper from './RotatableNodeWrapper';
 
 const WirelessMicNode = ({ id, data, selected }) => {
     const rotation = data.configuration?.rotation || 0;
+    const micNumber = data.configuration?.micNumber;
 
     return (
         <RotatableNodeWrapper id={id} selected={selected} rotation={rotation}>
             <div className="flex flex-col items-center justify-center p-2 relative cursor-grab w-[50px] h-[90px]">
+
+                {/* Visual mic number indicator */}
+                {micNumber && (
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
+                        {micNumber}
+                    </div>
+                )}
+
                 {/* Wireless Mic laying flat */}
                 <div className="relative w-8 h-16 flex flex-col items-center drop-shadow-2xl rotate-12">
                     <div className="w-6 h-7 bg-zinc-300 rounded-t-full border-[3px] border-zinc-400 opacity-90 z-10" style={{ backgroundImage: 'radial-gradient(#222 1px, transparent 1px)', backgroundSize: '3px 3px' }} />

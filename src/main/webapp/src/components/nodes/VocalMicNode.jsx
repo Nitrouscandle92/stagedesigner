@@ -4,10 +4,19 @@ import RotatableNodeWrapper from './RotatableNodeWrapper';
 
 const VocalMicNode = ({ id, data, selected }) => {
     const rotation = data.configuration?.rotation || 0;
+    const micNumber = data.configuration?.micNumber;
 
     return (
         <RotatableNodeWrapper id={id} selected={selected} rotation={rotation}>
             <div className="flex flex-col items-center justify-center p-2 relative cursor-grab w-[80px] h-[80px]">
+
+                {/* Visual mic number indicator */}
+                {micNumber && (
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
+                        {micNumber}
+                    </div>
+                )}
+
                 {/* Mic Stand Top-Down */}
                 <div className="relative w-12 h-12 flex flex-col items-center justify-center">
                     <div className="absolute w-12 h-12 rounded-full border-4 border-zinc-800 bg-zinc-900/40 shadow-xl" />
