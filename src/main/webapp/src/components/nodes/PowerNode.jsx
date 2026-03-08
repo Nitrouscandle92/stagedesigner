@@ -29,7 +29,7 @@ const PowerNode = ({ id, data, selected }) => {
             case 'DISTRO':
                 return (
                     <div className="w-[75px] min-h-[100px] bg-red-700 border-2 border-zinc-800 rounded-sm shadow-2xl flex flex-col p-1 gap-1 relative">
-                        <div className="text-[7px] font-bold text-white mb-0.5 uppercase text-center border-b border-red-900 pb-0.5">Distro</div>
+                        <div className="text-[14px] font-bold text-white mb-0.5 uppercase text-center border-b border-red-900 pb-0.5">Distro</div>
                         <Handle type="target" position={Position.Left} id="power-main-in" className="w-2.5 h-2.5 border-[2px] border-zinc-900 rounded-full z-20 cursor-crosshair" style={{ top: '15px', left: '-5px', backgroundColor: '#eab308' }} />
 
                         <div className="grid grid-cols-2 gap-1 mt-1">
@@ -75,7 +75,7 @@ const PowerNode = ({ id, data, selected }) => {
             <div className="relative flex flex-col items-center justify-center cursor-grab p-1">
                 {renderVisual()}
                 <div
-                    className="absolute -bottom-4 text-[8px] text-yellow-500 font-bold whitespace-nowrap bg-black/80 px-1.5 py-0.5 rounded z-50"
+                    className="absolute -bottom-4 text-[14px] text-yellow-500 font-bold whitespace-nowrap bg-black/80 px-1.5 py-0.5 rounded z-50"
                     style={{ transform: `rotate(${-rotation}deg)` }}
                 >
                     {data.label} ({socketCount}x)

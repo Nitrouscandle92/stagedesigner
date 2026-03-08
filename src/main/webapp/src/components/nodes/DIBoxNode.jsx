@@ -11,7 +11,7 @@ const DI800Node = ({ id, data, selected }) => {
 
                 <div className="flex justify-between items-center mb-1">
                     <div
-                        className="text-[6px] text-zinc-400 font-bold uppercase tracking-widest bg-black/50 px-1 rounded whitespace-nowrap"
+                        className="text-[14px] text-zinc-400 font-bold uppercase tracking-widest bg-black/50 px-1 rounded whitespace-nowrap"
                         style={{ transform: `rotate(${-rotation}deg)` }}
                     >
                         {data.label || 'ULTRA-DI PRO DI800'}

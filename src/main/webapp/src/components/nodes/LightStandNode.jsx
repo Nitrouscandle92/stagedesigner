@@ -21,7 +21,7 @@ const LightStandNode = ({ id, data, selected }) => {
                 <Handle type="source" position={Position.Top} id="mount-l" style={{ left: '20%' }} className="!w-3 !h-3 !bg-purple-500" />
                 <Handle type="source" position={Position.Top} id="mount-r" style={{ left: '80%' }} className="!w-3 !h-3 !bg-purple-500" />
 
-                <div className="absolute -bottom-6 text-[8px] text-zinc-400 font-bold uppercase tracking-tighter whitespace-nowrap" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-6 text-[14px] text-zinc-400 font-bold uppercase tracking-tighter whitespace-nowrap" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label || 'Light Stand'}
                 </div>
             </div>

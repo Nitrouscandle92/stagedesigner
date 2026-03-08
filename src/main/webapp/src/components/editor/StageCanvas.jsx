@@ -107,7 +107,7 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
     const [isLoading, setIsLoading] = useState(false);
     const [configNode, setConfigNode] = useState(null);
 
-    const { screenToFlowPosition, getNode } = useReactFlow();
+    const { screenToFlowPosition, getNode, deleteElements, getNodes, getEdges } = useReactFlow();
     const { toPixels } = useScaling();
 
     const createBoundaryNode = useCallback((width, depth, label) => ({
@@ -158,6 +158,12 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
 
             return newConfig;
         });
+    };
+
+    const handleDeleteSelected = () => {
+        const selectedNodes = getNodes().filter(n => n.selected);
+        const selectedEdges = getEdges().filter(e => e.selected);
+        deleteElements({ nodes: selectedNodes, edges: selectedEdges });
     };
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), [setNodes]);
@@ -346,6 +352,7 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 fitView
+                minZoom={0.1}
                 connectOnClick={true}
                 connectionRadius={45}
             >
@@ -375,6 +382,15 @@ const StageCanvas = ({ nodes, setNodes, edges, setEdges, stageConfig, setStageCo
                                 onChange={(e) => handleStageSizeChange('depthMeters', e.target.value)}
                                 className="w-16 bg-zinc-800 text-white border border-zinc-600 rounded px-2 py-1 text-sm outline-none focus:border-blue-500"
                             />
+                        </div>
+
+                        <div className="flex items-end ml-4 border-l border-zinc-700 pl-4">
+                            <button
+                                onClick={handleDeleteSelected}
+                                className="bg-red-600/80 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-bold transition-colors shadow"
+                            >
+                                Auswahl löschen
+                            </button>
                         </div>
                     </Panel>
                 )}

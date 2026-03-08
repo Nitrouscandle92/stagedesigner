@@ -19,7 +19,7 @@ const MixerNode = ({ id, data, selected }) => {
 
                 <div className="flex justify-between w-full h-1/4 mb-1">
                     <div className="w-1/2 h-full bg-blue-900/30 border border-blue-800/50 rounded-sm flex items-center justify-center">
-                        <span className="text-[7px] text-blue-300 font-bold">{data.label || 'X32 Producer'}</span>
+                        <span className="text-[14px] text-blue-300 font-bold">{data.label || 'X32 Producer'}</span>
                     </div>
                 </div>
 

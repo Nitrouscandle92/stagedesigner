@@ -57,7 +57,7 @@ const SpeakerSystemNode = ({ id, data, selected }) => {
                     </div>
                 )}
 
-                <div className="absolute -bottom-6 text-[10px] text-zinc-300 font-bold whitespace-nowrap bg-black/50 px-1.5 py-0.5 rounded shadow">
+                <div className="absolute -bottom-6 text-[14px] text-zinc-300 font-bold whitespace-nowrap bg-black/50 px-1.5 py-0.5 rounded shadow">
                     {data.label}
                 </div>
             </div>

@@ -23,7 +23,7 @@ const MusicStandNode = ({ id, data, selected }) => {
                 <div className="w-[50px] h-[50px] rounded-full border-4 border-zinc-700 bg-zinc-800 z-0 shadow-lg" />
 
                 {/* Anti-rotating Label */}
-                <div className="absolute -bottom-6 text-[10px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-6 text-[14px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label}
                 </div>
             </div>

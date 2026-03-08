@@ -27,7 +27,7 @@ const ArriControllerNode = ({ id, data, selected }) => {
                 <Handle type="target" position={Position.Left} id="dmx-in" className="!bg-purple-500" />
                 <Handle type="target" position={Position.Top} id="power-in" className="!bg-amber-500" />
 
-                <div className="absolute -top-4 right-0 text-[7px] text-zinc-500 font-mono uppercase">Arri Dimmer Pack</div>
+                <div className="absolute -top-4 right-0 text-[14px] text-zinc-500 font-mono uppercase">Arri Dimmer Pack</div>
             </div>
         </RotatableNodeWrapper>
     );

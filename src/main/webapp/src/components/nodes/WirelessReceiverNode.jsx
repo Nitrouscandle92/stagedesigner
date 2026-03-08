@@ -14,7 +14,7 @@ const WirelessReceiverNode = ({ id, data, selected }) => {
 
                 <div className="flex flex-1 gap-1">
                     {[1, 2].map(ch => (
-                        <div key={ch} className={`flex-1 h-4 border border-zinc-800 rounded-sm text-[6px] flex items-center justify-center ${ch <= connectedMics ? 'bg-cyan-900 text-cyan-400' : 'bg-black text-zinc-700'}`}>
+                        <div key={ch} className={`flex-1 h-4 border border-zinc-800 rounded-sm text-[14px] flex items-center justify-center ${ch <= connectedMics ? 'bg-cyan-900 text-cyan-400' : 'bg-black text-zinc-700'}`}>
                             CH{ch}
                         </div>
                     ))}

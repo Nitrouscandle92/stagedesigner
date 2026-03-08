@@ -46,7 +46,7 @@ const MonitorNode = ({ id, data, selected }) => {
 
                 {/* Anti-rotating label */}
                 <div
-                    className="absolute -bottom-4 text-[9px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50"
+                    className="absolute -bottom-4 text-[14px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50"
                     style={{ transform: `rotate(${-rotation}deg)` }}
                 >
                     {data.label}

@@ -12,7 +12,7 @@ const ChoirMicNode = ({ id, data, selected }) => {
 
                 {/* Visual mic number indicator */}
                 {micNumber && (
-                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[14px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
                         {micNumber}
                     </div>
                 )}
@@ -34,7 +34,7 @@ const ChoirMicNode = ({ id, data, selected }) => {
                     <Handle type="source" position={Position.Bottom} id="xlr-out" className="!w-full !h-full !opacity-0 z-30 cursor-crosshair" />
                 </div>
 
-                <div className="absolute -bottom-4 text-[9px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-4 text-[14px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label}
                 </div>
             </div>

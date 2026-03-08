@@ -17,11 +17,11 @@ const AcousticNode = ({ data }) => {
                 <div className="w-8 h-4 bg-zinc-900 rounded-t-full absolute top-0" />
             </div>
 
-            <div className="absolute -bottom-4 text-[9px] text-zinc-300 font-bold whitespace-nowrap bg-black/60 px-1 rounded">
+            <div className="absolute -bottom-4 text-[14px] text-zinc-300 font-bold whitespace-nowrap bg-black/60 px-1 rounded">
                 {data.label}: {instrument}
             </div>
 
-            <div className="absolute -top-6 text-[8px] text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute -top-6 text-[14px] text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 Double-click to config
             </div>
 

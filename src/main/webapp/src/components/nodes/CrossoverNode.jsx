@@ -13,7 +13,7 @@ const CrossoverNode = ({ id, data, selected }) => {
                 <div className="flex flex-col h-full justify-between w-full opacity-80 px-1">
                     <div className="flex justify-between items-start">
                         <div
-                            className="text-[6px] text-zinc-300 font-bold uppercase tracking-widest bg-black/50 px-1 rounded"
+                            className="text-[14px] text-zinc-300 font-bold uppercase tracking-widest bg-black/50 px-1 rounded"
                             style={{ transform: `rotate(${-rotation}deg)` }}
                         >
                             {data.label || 'Crossover 2-Way'}

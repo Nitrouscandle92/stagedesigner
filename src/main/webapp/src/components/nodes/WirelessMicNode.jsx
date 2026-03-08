@@ -12,7 +12,7 @@ const WirelessMicNode = ({ id, data, selected }) => {
 
                 {/* Visual mic number indicator */}
                 {micNumber && (
-                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white text-[14px] font-bold px-1.5 py-0.5 rounded shadow-md z-20 pointer-events-none">
                         {micNumber}
                     </div>
                 )}
@@ -28,7 +28,7 @@ const WirelessMicNode = ({ id, data, selected }) => {
 
                 <Handle type="source" position={Position.Bottom} id="rf-out" className="w-3 h-3 border-2 border-zinc-950 rounded-full" style={{ backgroundColor: '#d946ef' }} />
 
-                <div className="absolute -bottom-2 text-[9px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-2 text-[14px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label}
                 </div>
             </div>

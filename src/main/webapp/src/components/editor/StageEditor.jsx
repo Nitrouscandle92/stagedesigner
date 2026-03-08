@@ -66,8 +66,6 @@ const StageEditor = () => {
             })
         };
 
-
-
         try {
             const savedStage = await saveStage(payload);
             setCurrentStageId(savedStage.id);
@@ -80,7 +78,6 @@ const StageEditor = () => {
             return false;
         }
     };
-
 
     const handleLoadStage = async (id, asTemplate) => {
         try {
@@ -96,7 +93,6 @@ const StageEditor = () => {
             setCurrentStageId(asTemplate ? null : data.id);
 
             const loadedNodes = (data.elements || []).map(el => {
-
                 let exactType = el.configuration?.nodeType;
 
                 if (!exactType) {
@@ -164,10 +160,15 @@ const StageEditor = () => {
     };
 
     const handleExportJpeg = () => {
-        const flowElement = document.querySelector('.react-flow');
+        const flowElement = document.querySelector('.react-flow__viewport');
         if (!flowElement) return;
 
-        toJpeg(flowElement, { quality: 0.95, backgroundColor: '#18181b', pixelRatio: 2 })
+        toJpeg(flowElement, {
+            quality: 0.95,
+            backgroundColor: '#18181b',
+            pixelRatio: 2,
+            skipFonts: true
+        })
             .then((dataUrl) => {
                 const link = document.createElement('a');
                 link.download = `Stageplot_View.jpg`;

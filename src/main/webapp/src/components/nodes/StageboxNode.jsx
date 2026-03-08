@@ -11,13 +11,13 @@ const StageboxNode = ({ id, data, selected }) => {
 
                 <div className="flex justify-between items-start mb-1">
                     <div
-                        className="text-[9px] text-zinc-300 font-bold uppercase tracking-widest bg-black/50 px-1 rounded whitespace-nowrap"
+                        className="text-[14px] text-zinc-300 font-bold uppercase tracking-widest bg-black/50 px-1 rounded whitespace-nowrap"
                         style={{ transform: `rotate(${-rotation}deg)` }}
                     >
                         {data.label || 'S16 Digital Snake'}
                     </div>
                     <div className="w-6 h-3 bg-black border border-zinc-800 flex items-center justify-center rounded-sm">
-                        <span className="text-[7px] text-red-500 font-mono">1-8</span>
+                        <span className="text-[14px] text-red-500 font-mono">1-8</span>
                     </div>
                 </div>
 

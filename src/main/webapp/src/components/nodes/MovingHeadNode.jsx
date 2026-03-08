@@ -29,7 +29,7 @@ const MovingHeadNode = ({ id, data, selected }) => {
                 <Handle type="source" position={Position.Right} id="dmx-out" className="!bg-purple-500" style={{ top: '25%' }} />
                 <Handle type="target" position={Position.Left} id="power-in" className="!bg-amber-500" style={{ top: '75%' }} />
 
-                <div className="absolute -bottom-4 text-[9px] text-purple-300 font-bold bg-black/80 px-2 py-0.5 rounded whitespace-nowrap shadow-lg" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-4 text-[14px] text-purple-300 font-bold bg-black/80 px-2 py-0.5 rounded whitespace-nowrap shadow-lg" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label || 'Moving Head'}
                 </div>
             </div>

@@ -20,7 +20,7 @@ const AcousticGuitarNode = ({ id, data, selected }) => {
                     </div>
                 </div>
                 <Handle type="source" position={Position.Bottom} id="inst-out" className="w-3 h-3 border-2 border-zinc-950 rounded-full" style={{ backgroundColor: '#a855f7' }} />
-                <div className="absolute -bottom-4 text-[10px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>{data.label}</div>
+                <div className="absolute -bottom-4 text-[14px] text-zinc-300 font-bold bg-black/80 px-2 py-1 rounded whitespace-nowrap z-50" style={{ transform: `rotate(${-rotation}deg)` }}>{data.label}</div>
             </div>
         </RotatableNodeWrapper>
     );

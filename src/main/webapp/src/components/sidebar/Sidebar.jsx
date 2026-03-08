@@ -46,7 +46,7 @@ const elements = [
     { type: 'crossover', label: 'Crossover', icon: '🎛️', category: 'ROUTING' },
     //{ type: 'rack', label: '19" Rack', icon: '🗄️', category: 'ROUTING' },
 
-    { type: 'chair', label: 'Stuhl', icon: '🪑', category: 'STAGE' },
+    { type: 'chair', label: 'Hocker', icon: '🪑', category: 'STAGE' },
     { type: 'music_stand', label: 'Notenpult', icon: '🎼', category: 'STAGE' },
     { type: 'power', label: 'Stromquelle', icon: '⚡', category: 'POWER' }
 ];
@@ -82,7 +82,7 @@ const Sidebar = () => {
                 {Object.entries(groupedElements).map(([groupName, items]) => (
                     items.length > 0 && (
                         <div key={groupName}>
-                            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">{groupName}</h3>
+                            <h3 className="text-[14px] font-bold text-zinc-500 uppercase tracking-wider mb-2">{groupName}</h3>
                             <div className="flex flex-col gap-2">
                                 {items.map((item, index) => (
                                     <div

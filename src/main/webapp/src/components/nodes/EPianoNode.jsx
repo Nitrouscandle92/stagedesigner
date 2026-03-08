@@ -47,7 +47,7 @@ const EPianoNode = ({ id, data, selected }) => {
                     </div>
                 </div>
 
-                <div className="absolute -bottom-6 text-[10px] font-bold text-zinc-300 bg-black/80 px-2 py-1 rounded whitespace-nowrap" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-6 text-[14px] font-bold text-zinc-300 bg-black/80 px-2 py-1 rounded whitespace-nowrap" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label}
                 </div>
             </div>

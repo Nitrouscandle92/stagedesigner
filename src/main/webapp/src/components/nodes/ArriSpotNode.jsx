@@ -25,7 +25,7 @@ const ArriSpotNode = ({ id, data, selected }) => {
 
                 <Handle type="target" position={Position.Top} id="power-in" className="!bg-amber-600" />
 
-                <div className="absolute -bottom-4 text-[9px] text-amber-500 font-bold bg-black/80 px-2 py-0.5 rounded whitespace-nowrap shadow-lg" style={{ transform: `rotate(${-rotation}deg)` }}>
+                <div className="absolute -bottom-4 text-[14px] text-amber-500 font-bold bg-black/80 px-2 py-0.5 rounded whitespace-nowrap shadow-lg" style={{ transform: `rotate(${-rotation}deg)` }}>
                     {data.label || 'Arri Fresnel'}
                 </div>
             </div>
